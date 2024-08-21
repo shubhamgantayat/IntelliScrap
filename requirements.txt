@@ -1,0 +1,17 @@
+pandas
+numpy
+torch
+torchvision
+torchaudio
+transformers
+sentence-transformers
+nltk
+openai
+python-dotenv
+tqdm
+datasets
+lxml
+selenium
+webdriver-manager
+pymupdf
+faiss-cpu
