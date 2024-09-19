@@ -1,2 +1,2 @@
-from SeleniumHandler.selenium_handler import SeleniumHandler
+from SeleniumHandler.selenium_handler import SeleniumHandler, GoogleNewsScrapper, DuckDuckGoNewsScrapper
 from SeleniumHandler.utils import download

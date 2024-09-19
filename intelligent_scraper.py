@@ -46,7 +46,7 @@ class IntelliScrap(SeleniumHandler):
             text += "\n" + page.get_text("")
         return text
 
-    def get_structured_text(self, url):
+    def get_structured_text(self, url, include_links=True, include_images=True):
         if re.search("\.pdf$", url) is not None:
             filename = os.path.join(TMP_DOWNLOAD_DIR, str(uuid.uuid1()) + ".pdf")
             if download(url, filename) == 0:
@@ -54,7 +54,7 @@ class IntelliScrap(SeleniumHandler):
             else:
                 return "", []
         else:
-            self.driver.set_page_load_timeout(10)
+            # self.driver.set_page_load_timeout(20)
             try:
                 self.driver.get(url)
                 time.sleep(5)
@@ -68,30 +68,30 @@ class IntelliScrap(SeleniumHandler):
             tree = self.get_tree(lxml_tree)
             result = []
             if "body" in tree["html"]["next_node"].keys():
-                text = self.traverse_tree("body", tree["html"]["next_node"]["body"], lxml_tree, result)
+                text = self.traverse_tree("body", tree["html"]["next_node"]["body"], lxml_tree, result, include_images=include_images, include_links=include_links)
                 return re.sub("\n(?:([ \t]*\n)*)", "\n", text), result
             else:
                 return "", result
 
-    def traverse_tree(self, key, value, lxml_tree, result, prefix="", level=0):
+    def traverse_tree(self, key, value, lxml_tree, result, prefix="", level=0, include_links=True, include_images=True):
         tree = etree.ElementTree(lxml_tree)
         if len(value["next_node"]) == 0:
             if key in self.terminal_tags:
                 if key == "a":
                     attrs = lxml_tree.xpath(value["xpath"])[0].attrib
                     text = "".join(list(lxml_tree.xpath(value["xpath"])[0].itertext()))
-                    if "href" in attrs.keys() and text is not None:
-                        res = text + "( " + "### Link: " + lxml_tree.xpath(value["xpath"])[0].attrib["href"] + " )"
-                    elif "href" in attrs.keys():
-                        res = "( " + "### Link: " + lxml_tree.xpath(value["xpath"])[0].attrib["href"] + " )"
+                    if "href" in attrs.keys() and text is not None and include_links is True:
+                        res = text + "( " + "### Link: " + lxml_tree.xpath(value["xpath"])[0].attrib["href"] + " )."
+                    elif "href" in attrs.keys() and include_links is True:
+                        res = "( " + "### Link: " + lxml_tree.xpath(value["xpath"])[0].attrib["href"] + " )."
                     elif text is not None:
                         res = text
                     else:
                         res = ""
-                elif key == "img":
+                elif key == "img" and include_images is True:
                     attrs = lxml_tree.xpath(value["xpath"])[0].attrib
                     if "src" in attrs.keys():
-                        res = "( ### Image: " + lxml_tree.xpath(value["xpath"])[0].attrib["src"] + " )"
+                        res = "( ### Image: " + lxml_tree.xpath(value["xpath"])[0].attrib["src"] + " )."
                     else:
                         res = ""
                 elif key == "li":
@@ -134,23 +134,23 @@ class IntelliScrap(SeleniumHandler):
                     idx1, idx2 = self.get_texts_in_between(main_texts, texts, start)
                     if key == "a":
                         attrs = lxml_tree.xpath(value["xpath"])[0].attrib
-                        if "href" in attrs.keys():
+                        if "href" in attrs.keys() and include_links is True:
                             res = prefix + self.traverse_tree(next_node_key, next_node_value, lxml_tree, result, prefix,
-                                                              level + 1) + "( " + "### Link:" + \
-                                  lxml_tree.xpath(value["xpath"])[0].attrib["href"] + " )"
+                                                              level + 1, include_links, include_images) + "( " + "### Link:" + \
+                                  lxml_tree.xpath(value["xpath"])[0].attrib["href"] + " )."
                             result[-1]["text"] = prefix + result[-1]["text"] + "( " + "### Link:" + \
-                                                 lxml_tree.xpath(value["xpath"])[0].attrib["href"] + " )"
+                                                 lxml_tree.xpath(value["xpath"])[0].attrib["href"] + " )."
                         else:
                             res = prefix + self.traverse_tree(next_node_key, next_node_value, lxml_tree, result, prefix,
-                                                              level + 1)
+                                                              level + 1, include_links, include_images)
                             result[-1]["text"] = prefix + result[-1]["text"]
                     elif key == "ol" or key == "ul":
                         res = prefix + " " + self.traverse_tree(next_node_key, next_node_value, lxml_tree, result,
-                                                                prefix + " ", level + 1)
+                                                                prefix + " ", level + 1, include_links, include_images)
                         result[-1]["text"] = prefix + " " + result[-1]["text"]
                     elif key == "li":
                         res = prefix + "> " + self.traverse_tree(next_node_key, next_node_value, lxml_tree, result,
-                                                                 prefix + "> ", level + 1)
+                                                                 prefix + "> ", level + 1, include_links, include_images)
                         result[-1]["text"] = prefix + "> " + result[-1]["text"]
                     elif key == "table":
                         res = ""
@@ -170,11 +170,11 @@ class IntelliScrap(SeleniumHandler):
                             pass
                     elif key == "div":
                         res = prefix + "\n" + self.traverse_tree(next_node_key, next_node_value, lxml_tree, result,
-                                                                 prefix, level + 1)
+                                                                 prefix, level + 1, include_links, include_images)
                         result[-1]["text"] = prefix + "\n" + result[-1]["text"]
                     else:
                         res = prefix + self.traverse_tree(next_node_key, next_node_value, lxml_tree, result, prefix,
-                                                          level + 1)
+                                                          level + 1, include_links, include_images)
                         result[-1]["text"] = prefix + result[-1]["text"]
                     val += prefix + "".join(main_texts[start: idx1]) + res[len(prefix):]
                     # if len(result) != 0:

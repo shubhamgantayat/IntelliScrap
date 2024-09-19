@@ -2,7 +2,6 @@ import pandas as pd
 from tqdm import tqdm
 from intelligent_scraper import crawl
 from RAG import get_dict_from_json
-from main_chemical_extraction import property_name, chemical_name
 
 query = lambda property_name, chemical_name: f"{property_name} of {chemical_name}"
 
