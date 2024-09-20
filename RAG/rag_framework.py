@@ -69,9 +69,9 @@ class RAG:
         return RAG.get_response(text)
 
     @staticmethod
-    def get_response(text, system_content="You are a helpful assistant."):
+    def get_response(text, system_content="You are a helpful assistant.", model="gpt-4o-mini"):
         response = OPENAI_CLIENT.chat.completions.create(
-            model="gpt-4o-mini",
+            model=model,
             # model="gpt-3.5-turbo",
             messages=[
                 {"role": "system",

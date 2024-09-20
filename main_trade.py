@@ -26,6 +26,8 @@ def get_news(link):
     text, result = iscrap.get_structured_text(link, include_images=False, include_links=False)
     # return text
     split_texts = split(text, chunk_size=1024, chunk_overlap=128)
+    if len(split_texts) == 1:
+        return None
     # print(len(split_texts))
     prompt = lambda text, summary: f"""Following is the previous output:
 
@@ -75,8 +77,13 @@ def load_data():
     gns = DuckDuckGoNewsScrapper()
     links = gns.scrap("latest stock news india")
     stocks = []
-    for link in links[:5]:
+    visited_links = 0
+    for link in links:
+        if visited_links == 3:
+            break
         summary = get_news(link)
+        if summary is None:
+            continue
         resp = assign_summary_to_stock(summary)
         try:
             news = list(filter(lambda x: x["news"] is not None and x["news"].strip() != "", get_dict_from_json(resp)))
@@ -84,6 +91,7 @@ def load_data():
                 each_news["sentiment"] = get_sentiment(each_news["news"])
                 each_news["link"] = link
             stocks.extend(news)
+            visited_links += 1
         except:
             pass
 
