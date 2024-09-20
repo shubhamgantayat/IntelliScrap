@@ -16,3 +16,4 @@ webdriver-manager
 pymupdf
 faiss-cpu
 openpyxl
+beautifulsoup4
