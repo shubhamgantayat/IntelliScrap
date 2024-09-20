@@ -9,10 +9,7 @@ from webdriver_manager.core.os_manager import ChromeType
 import time
 from selenium.webdriver.common.by import By
 from urllib.parse import quote
-import chromedriver_autoinstaller
-
-
-chromedriver_autoinstaller.install()
+import shutil
 
 
 class SeleniumHandler:
@@ -24,8 +21,12 @@ class SeleniumHandler:
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument(
             'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36')
-        # self.driver = webdriver.Chrome(service=Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()), options=options)
-        self.driver = webdriver.Chrome(options=options)
+        chromedriver_path = shutil.which('chromedriver')
+        if chromedriver_path is None:
+            self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        else:
+            self.driver = webdriver.Chrome(service=chromedriver_path, options=options)
+        # self.driver = webdriver.Chrome(options=options)
 
     def open_a_new_window(self, url: str = "", status='open'):
 
