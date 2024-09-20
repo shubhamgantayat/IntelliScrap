@@ -25,7 +25,7 @@ class SeleniumHandler:
         if chromedriver_path is None:
             self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         else:
-            self.driver = webdriver.Chrome(service=chromedriver_path, options=options)
+            self.driver = webdriver.Chrome(service=Service(executable_path=chromedriver_path), options=options)
         # self.driver = webdriver.Chrome(options=options)
 
     def open_a_new_window(self, url: str = "", status='open'):
