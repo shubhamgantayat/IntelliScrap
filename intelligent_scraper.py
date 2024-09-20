@@ -54,7 +54,7 @@ class IntelliScrap(SeleniumHandler):
             else:
                 return "", []
         else:
-            # self.driver.set_page_load_timeout(20)
+            self.driver.set_page_load_timeout(20)
             try:
                 self.driver.get(url)
                 time.sleep(5)
