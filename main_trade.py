@@ -11,8 +11,13 @@ import time
 from urllib.request import quote
 from intelligent_scraper import IntelliScrap
 from RAG import RAG, split, get_dict_from_json
+import streamlit as st
 
-df = pd.read_csv("Nifty_50.csv")
+
+st.title('Daily Stocks News')
+
+
+# df = pd.read_csv("Nifty_50.csv")
 
 tqdm.pandas()
 
@@ -55,16 +60,43 @@ If no news about any stock/sector is present in the text, return an json with em
     return RAG.get_response(prompt)
 
 
-gns = DuckDuckGoNewsScrapper()
-links = gns.scrap("latest stock news india")
-stocks = []
-for link in links[:2]:
-    summary = get_news(link)
-    resp = assign_summary_to_stock(summary)
-    try:
-        stocks.extend(get_dict_from_json(resp))
-    except:
-        pass
+def get_sentiment(text):
+    prompt = f"""### News: {text}
 
-stocks_df = pd.DataFrame.from_records(stocks)
-print(stocks_df)
+
+### Question: Choose whether this news is positive / neutral / negative ? Only output the choice. 
+
+
+### Choice: """
+    return RAG.get_response(prompt)
+
+
+def load_data():
+    gns = DuckDuckGoNewsScrapper()
+    links = gns.scrap("latest stock news india")
+    stocks = []
+    for link in links[:5]:
+        summary = get_news(link)
+        resp = assign_summary_to_stock(summary)
+        try:
+            news = list(filter(lambda x: x["news"] is not None and x["news"].strip() != "", get_dict_from_json(resp)))
+            for each_news in news:
+                each_news["sentiment"] = get_sentiment(each_news["news"])
+                each_news["link"] = link
+            stocks.extend(news)
+        except:
+            pass
+
+    stocks_df = pd.DataFrame.from_records(stocks)
+    return stocks_df
+
+
+data_load_state = st.text('Loading latest news...')
+data = load_data()
+data_load_state.text("Done! Loaded latest news")
+# st.subheader('Raw data')
+st.dataframe(data, column_config={
+    "news": st.column_config.TextColumn("news", width="medium"),
+    "link": st.column_config.LinkColumn("link")
+})
+# st.write(data)

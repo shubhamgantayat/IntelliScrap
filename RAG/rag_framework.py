@@ -71,8 +71,8 @@ class RAG:
     @staticmethod
     def get_response(text, system_content="You are a helpful assistant."):
         response = OPENAI_CLIENT.chat.completions.create(
-            # model="gpt-4o-mini",
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
+            # model="gpt-3.5-turbo",
             messages=[
                 {"role": "system",
                  "content": system_content},
