@@ -17,3 +17,4 @@ pymupdf
 faiss-cpu
 openpyxl
 beautifulsoup4
+chromedriver-autoinstaller
